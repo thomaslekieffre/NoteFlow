@@ -114,7 +114,7 @@ export default function Home() {
                 <h3 className="text-xl font-semibold mb-2">
                   Historique des versions
                 </h3>
-                <p>Accédez à l'historique complet de vos modifications.</p>
+                <p>Accédez à l&apos;historique complet de vos modifications.</p>
               </motion.div>
               <motion.div
                 className="flex flex-col items-center text-center"
@@ -124,7 +124,7 @@ export default function Home() {
               >
                 <FiUsers className="text-4xl mb-4 text-primary" />
                 <h3 className="text-xl font-semibold mb-2">
-                  Collaboration d'équipe
+                  Collaboration d&apos;équipe
                 </h3>
                 <p>Partagez et collaborez facilement avec votre équipe.</p>
               </motion.div>
@@ -143,7 +143,7 @@ export default function Home() {
         </p>
         <nav className="sm:ml-auto flex gap-4 sm:gap-6">
           <a className="text-xs hover:underline underline-offset-4" href="#">
-            Conditions d'utilisation
+            Conditions d&apos;utilisation
           </a>
           <a className="text-xs hover:underline underline-offset-4" href="#">
             Politique de confidentialité
