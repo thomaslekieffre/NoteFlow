@@ -6,6 +6,7 @@ import { SignInButton } from "@clerk/nextjs";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { motion } from "framer-motion";
 import { FiEdit3, FiClock, FiUsers } from "react-icons/fi";
+import { TypeAnimation } from "react-type-animation";
 
 export default function Home() {
   return (
@@ -57,7 +58,19 @@ export default function Home() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.3 }}
               >
-                Bienvenue sur NoteFlow
+                <TypeAnimation
+                  sequence={[
+                    "Bienvenue sur NoteFlow",
+                    1500,
+                    "Bienvenue sur votre espace de travail",
+                    1500,
+                    "Bienvenue sur votre plateforme collaborative",
+                    1500,
+                  ]}
+                  wrapper="span"
+                  speed={50}
+                  repeat={Infinity}
+                />
               </motion.h1>
               <motion.p
                 className="mx-auto max-w-[700px] text-gray-500 md:text-xl dark:text-gray-400"
