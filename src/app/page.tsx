@@ -28,6 +28,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import BurgerMenu from "@/components/BurgerMenu";
+import { useUser, useAuth } from "@clerk/nextjs";
+import { useRouter } from "next/navigation";
 
 const AnimateOnScroll = ({ children }: { children: React.ReactNode }) => {
   const [ref, inView] = useInView({
@@ -64,6 +66,26 @@ const DotPattern = () => (
 );
 
 export default function Home() {
+  const { isLoaded, userId } = useAuth();
+  const { user } = useUser();
+  const router = useRouter();
+
+  React.useEffect(() => {
+    if (isLoaded && userId) {
+      router.push("/dashboard");
+    }
+  }, [isLoaded, userId, router]);
+
+  if (!isLoaded || userId) {
+    return null; // ou un composant de chargement
+  }
+
+  const handleStartClick = () => {
+    if (user) {
+      router.push("/dashboard");
+    }
+  };
+
   return (
     <div className="flex flex-col min-h-screen relative overflow-hidden">
       <DotPattern />
