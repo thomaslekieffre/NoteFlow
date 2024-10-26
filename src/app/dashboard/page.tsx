@@ -4,10 +4,18 @@ import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
-import { FiPlus, FiFileText, FiMail, FiArchive, FiEdit } from "react-icons/fi";
+import {
+  FiPlus,
+  FiFileText,
+  FiMail,
+  FiArchive,
+  FiEdit,
+  FiTrash2,
+} from "react-icons/fi";
 import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { Toaster, toast } from "react-hot-toast";
 
 interface Note {
   id: string;
@@ -93,12 +101,35 @@ export default function Dashboard() {
     }
   };
 
+  const handleDeleteNote = async (noteId: string) => {
+    if (window.confirm("Êtes-vous sûr de vouloir supprimer cette note ?")) {
+      try {
+        const response = await fetch(`/api/notes/${noteId}`, {
+          method: "DELETE",
+        });
+
+        if (!response.ok) {
+          throw new Error("Erreur lors de la suppression de la note");
+        }
+
+        toast("Note supprimée avec succès", {
+          icon: "🗑️",
+        });
+        fetchUserData();
+      } catch (error) {
+        console.error("Erreur lors de la suppression de la note:", error);
+        toast.error("Impossible de supprimer la note");
+      }
+    }
+  };
+
   if (!isLoaded || !user) {
     return null;
   }
 
   return (
     <div className="container mx-auto p-4">
+      <Toaster position="top-right" />
       <motion.h1
         className="text-3xl font-bold mb-8"
         initial={{ opacity: 0, y: -20 }}
@@ -196,25 +227,54 @@ export default function Dashboard() {
       >
         <Card>
           <CardHeader>
-            <CardTitle>Notes récentes</CardTitle>
+            <CardTitle className="flex items-center text-white">
+              <FiFileText className="mr-2" /> Notes récentes
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <ul className="space-y-2">
-              {recentNotes.map((note) => (
-                <li key={note.id} className="flex items-center justify-between">
-                  <Link
-                    href={`/notes/${note.id}`}
-                    className="flex items-center hover:underline"
+            {recentNotes.length > 0 ? (
+              <ul className="space-y-2">
+                {recentNotes.map((note) => (
+                  <li
+                    key={note.id}
+                    className="flex items-center justify-between p-3 rounded-lg shadow dark:shadow-gray-800"
                   >
-                    <FiEdit className="mr-2" />
-                    {note.title}
-                  </Link>
-                  <span className="text-sm text-gray-500">
-                    {note.updatedAt}
-                  </span>
-                </li>
-              ))}
-            </ul>
+                    <Link
+                      href={`/notes/${note.id}`}
+                      className="flex items-center hover:underline flex-grow text-black dark:text-white"
+                    >
+                      <FiFileText className="mr-2" />
+                      {note.title}
+                    </Link>
+                    <span className="text-sm text-gray-500 dark:text-gray-400 mx-2">
+                      {new Date(note.updatedAt).toLocaleDateString()}
+                    </span>
+                    <div className="flex space-x-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => router.push(`/notes/${note.id}`)}
+                        className="dark:text-white"
+                      >
+                        <FiEdit className="mr-1" /> Éditer
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => handleDeleteNote(note.id)}
+                        className="dark:text-white"
+                      >
+                        <FiTrash2 className="mr-1" /> Supprimer
+                      </Button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-center text-gray-500 dark:text-gray-400">
+                Aucune note récente
+              </p>
+            )}
           </CardContent>
         </Card>
       </motion.div>

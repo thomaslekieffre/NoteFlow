@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
-import { createNote, getNotes, getNote, updateNote } from "@/lib/db";
+import {
+  createNote,
+  getNotes,
+  getNote,
+  updateNote,
+  deleteNote,
+} from "@/lib/db";
 
 export async function POST(request: NextRequest) {
   try {
@@ -83,6 +89,30 @@ export async function PUT(request: NextRequest, context: any) {
     return NextResponse.json(updatedNote);
   } catch (error) {
     console.error("Erreur lors de la mise à jour de la note:", error);
+    return NextResponse.json(
+      { error: "Erreur interne du serveur" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(request: NextRequest, context: any) {
+  const { id } = context.params;
+  try {
+    const { userId } = await auth();
+
+    if (!userId) {
+      return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
+    }
+
+    await deleteNote(userId, id);
+
+    return NextResponse.json({ message: "Note supprimée avec succès" });
+  } catch (error) {
+    console.error("Erreur lors de la suppression de la note:", error);
+    if (error instanceof Error && error.message === "Note non trouvée") {
+      return NextResponse.json({ error: "Note non trouvée" }, { status: 404 });
+    }
     return NextResponse.json(
       { error: "Erreur interne du serveur" },
       { status: 500 }

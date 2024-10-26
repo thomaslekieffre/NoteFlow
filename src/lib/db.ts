@@ -66,3 +66,12 @@ export async function updateNote(
     throw error;
   }
 }
+
+export async function deleteNote(userId: string, noteId: string) {
+  try {
+    await sql`DELETE FROM notes WHERE user_id = ${userId} AND id = ${noteId}`;
+  } catch (error) {
+    console.error("Error deleting note:", error);
+    throw error;
+  }
+}
