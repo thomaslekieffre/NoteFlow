@@ -31,10 +31,8 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: NextRequest, context: any) {
+  const { id } = context.params;
   try {
     const { userId } = await auth();
 
@@ -42,7 +40,7 @@ export async function GET(
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
     }
 
-    const note = await getNote(userId, params.id);
+    const note = await getNote(userId, id);
 
     if (!note) {
       return NextResponse.json({ error: "Note non trouvée" }, { status: 404 });
@@ -58,10 +56,8 @@ export async function GET(
   }
 }
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PUT(request: NextRequest, context: any) {
+  const { id } = context.params;
   try {
     const { userId } = await auth();
 
@@ -78,7 +74,7 @@ export async function PUT(
       );
     }
 
-    const updatedNote = await updateNote(userId, params.id, title, content);
+    const updatedNote = await updateNote(userId, id, title, content);
 
     if (!updatedNote) {
       return NextResponse.json({ error: "Note non trouvée" }, { status: 404 });
