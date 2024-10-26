@@ -33,15 +33,28 @@ export default function Dashboard() {
   }, [isLoaded, user, router]);
 
   const fetchUserData = async () => {
-    // Ici, vous feriez un appel API pour récupérer les vraies données
-    setNotesCount(15);
-    setMaxNotes(100);
-    setInvitations(3);
-    setRecentNotes([
-      { id: "1", title: "Note 1", updatedAt: "2024-11-01" },
-      { id: "2", title: "Note 2", updatedAt: "2024-11-02" },
-      { id: "3", title: "Note 3", updatedAt: "2024-11-03" },
-    ]);
+    try {
+      console.log("Fetching user data...");
+      const response = await fetch("/api/notes", {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      console.log("Received data:", data);
+      setNotesCount(data.count);
+      setMaxNotes(100);
+      setRecentNotes(data.recentNotes);
+    } catch (error) {
+      console.error("Erreur lors de la récupération des données:", error);
+      setNotesCount(0);
+      setMaxNotes(100);
+      setRecentNotes([]);
+    }
   };
 
   const handleCreateNote = async () => {
@@ -58,32 +71,25 @@ export default function Dashboard() {
         }),
       });
 
-      const responseText = await response.text();
-      console.log("Réponse brute du serveur:", responseText);
-
       if (!response.ok) {
+        const errorText = await response.text();
         throw new Error(
-          `Échec de la création de la note: ${response.status} ${response.statusText}\n${responseText}`
+          `Échec de la création de la note: ${response.status} ${response.statusText}\n${errorText}`
         );
       }
 
-      let newNote;
-      try {
-        newNote = JSON.parse(responseText);
-      } catch (parseError) {
-        console.error("Erreur lors du parsing de la réponse JSON:", parseError);
-        throw new Error("La réponse du serveur n'est pas un JSON valide");
-      }
+      const newNote = await response.json();
+      console.log("Nouvelle note créée:", newNote);
 
-      setRecentNotes((prevNotes) => [newNote, ...prevNotes.slice(0, 2)]);
-      setNotesCount((prevCount) => prevCount + 1);
+      router.push(`/notes/${newNote.id}`);
     } catch (error) {
-      console.error("Erreur détaillée lors de la création de la note:", error);
+      console.error("Erreur lors de la création de la note:", error);
       alert(
         "Erreur lors de la création de la note : " + (error as Error).message
       );
     } finally {
       setIsCreatingNote(false);
+      await fetchUserData();
     }
   };
 

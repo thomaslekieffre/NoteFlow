@@ -28,12 +28,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="fr" suppressHydrationWarning>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}
-      >
-        <ClientLayout>{children}</ClientLayout>
-      </body>
-    </html>
+    <ClerkProvider dynamic>
+      <html lang="fr" suppressHydrationWarning>
+        <body
+          className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}
+        >
+          <ClientLayout>{children}</ClientLayout>
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }

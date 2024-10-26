@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
+import { createNote, getNotes } from "@/lib/db";
 
 export async function POST(request: Request) {
   try {
@@ -18,17 +19,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const newNote = {
-      id: Date.now().toString(),
-      userId,
-      title,
-      content,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-
-    // Ici, vous devriez normalement sauvegarder la note dans une base de données
-    // Pour l'instant, nous allons simplement retourner la nouvelle note
+    const newNote = await createNote(userId, title, content);
 
     return NextResponse.json(newNote, { status: 201 });
   } catch (error) {
@@ -36,6 +27,41 @@ export async function POST(request: Request) {
     return NextResponse.json(
       { error: "Erreur interne du serveur" },
       { status: 500 }
+    );
+  }
+}
+
+export async function GET(request: Request) {
+  try {
+    const { userId } = await auth();
+
+    if (!userId) {
+      return new Response(JSON.stringify({ error: "Non autorisé" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    const notes = await getNotes(userId);
+    const count = notes.length;
+    const recentNotes = notes.slice(0, 3).map((note) => ({
+      id: note.id,
+      title: note.title,
+      updatedAt: note.updated_at.toISOString(),
+    }));
+
+    return new Response(JSON.stringify({ count, recentNotes }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (error) {
+    console.error("Erreur lors de la récupération des notes:", error);
+    return new Response(
+      JSON.stringify({ error: "Erreur interne du serveur" }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      }
     );
   }
 }

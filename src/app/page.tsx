@@ -77,7 +77,7 @@ export default function Home() {
   }, [isLoaded, userId, router]);
 
   if (!isLoaded || userId) {
-    return null; // ou un composant de chargement
+    return null;
   }
 
   const handleStartClick = () => {
