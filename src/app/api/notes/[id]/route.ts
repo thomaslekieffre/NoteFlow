@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { createNote, getNotes, getNote, updateNote } from "@/lib/db";
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
     const { userId } = await auth();
 
@@ -21,27 +21,20 @@ export async function POST(request: Request) {
 
     const newNote = await createNote(userId, title, content);
 
-    return new Response(JSON.stringify(newNote), {
-      status: 201,
-      headers: { "Content-Type": "application/json" },
-    });
+    return NextResponse.json(newNote, { status: 201 });
   } catch (error) {
     console.error("Erreur lors de la création de la note:", error);
-    return new Response(
-      JSON.stringify({ error: "Erreur interne du serveur" }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      }
+    return NextResponse.json(
+      { error: "Erreur interne du serveur" },
+      { status: 500 }
     );
   }
 }
 
 export async function GET(
   request: NextRequest,
-  context: { params: { id: string } }
+  { params }: { params: { id: string } }
 ) {
-  const id = context.params.id;
   try {
     const { userId } = await auth();
 
@@ -49,7 +42,7 @@ export async function GET(
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
     }
 
-    const note = await getNote(userId, id);
+    const note = await getNote(userId, params.id);
 
     if (!note) {
       return NextResponse.json({ error: "Note non trouvée" }, { status: 404 });
@@ -67,9 +60,8 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  context: { params: { id: string } }
+  { params }: { params: { id: string } }
 ) {
-  const id = context.params.id;
   try {
     const { userId } = await auth();
 
@@ -86,7 +78,7 @@ export async function PUT(
       );
     }
 
-    const updatedNote = await updateNote(userId, id, title, content);
+    const updatedNote = await updateNote(userId, params.id, title, content);
 
     if (!updatedNote) {
       return NextResponse.json({ error: "Note non trouvée" }, { status: 404 });
