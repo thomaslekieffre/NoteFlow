@@ -11,11 +11,19 @@ import {
   FiArchive,
   FiEdit,
   FiTrash2,
+  FiMoreHorizontal,
+  FiShare2,
 } from "react-icons/fi";
 import { useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Toaster, toast } from "react-hot-toast";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface Note {
   id: string;
@@ -121,6 +129,15 @@ export default function Dashboard() {
         toast.error("Impossible de supprimer la note");
       }
     }
+  };
+
+  const handleShareNote = (noteId: string) => {
+    // Ici, vous pouvez implémenter la logique de partage
+    // Par exemple, ouvrir une boîte de dialogue pour entrer l'email du destinataire
+    toast("Fonctionnalité de partage à implémenter", {
+      icon: "🔗",
+    });
+    console.log("Partager la note avec ID:", noteId);
   };
 
   if (!isLoaded || !user) {
@@ -249,24 +266,34 @@ export default function Dashboard() {
                     <span className="text-sm text-gray-500 dark:text-gray-400 mx-2">
                       {new Date(note.updatedAt).toLocaleDateString()}
                     </span>
-                    <div className="flex space-x-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => router.push(`/notes/${note.id}`)}
-                        className="dark:text-white"
-                      >
-                        <FiEdit className="mr-1" /> Éditer
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => handleDeleteNote(note.id)}
-                        className="dark:text-white"
-                      >
-                        <FiTrash2 className="mr-1" /> Supprimer
-                      </Button>
-                    </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="h-8 w-8 p-0">
+                          <span className="sr-only">Ouvrir le menu</span>
+                          <FiMoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem
+                          onClick={() => router.push(`/notes/${note.id}`)}
+                        >
+                          <FiEdit className="mr-2 h-4 w-4" />
+                          <span>Éditer</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => handleShareNote(note.id)}
+                        >
+                          <FiShare2 className="mr-2 h-4 w-4" />
+                          <span>Partager</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => handleDeleteNote(note.id)}
+                        >
+                          <FiTrash2 className="mr-2 h-4 w-4" />
+                          <span>Supprimer</span>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </li>
                 ))}
               </ul>
