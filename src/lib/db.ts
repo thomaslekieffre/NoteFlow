@@ -1,50 +1,47 @@
 import { sql } from "@vercel/postgres";
+import { v4 as uuidv4 } from "uuid";
+
+interface Note {
+  id: number;
+  title: string;
+  content: string;
+  created_at: Date;
+  updated_at: Date;
+}
 
 export async function createNote(
   userId: string,
   title: string,
   content: string
-) {
-  try {
-    const result = await sql`
-      INSERT INTO notes (user_id, title, content)
-      VALUES (${userId}, ${title}, ${content})
-      RETURNING id, title, content, created_at, updated_at
-    `;
-    return result.rows[0];
-  } catch (error) {
-    console.error("Error creating note:", error);
-    throw error;
-  }
+): Promise<Note> {
+  const result = await sql<Note>`
+    INSERT INTO notes (user_id, title, content)
+    VALUES (${userId}, ${title}, ${content})
+    RETURNING id, title, content, created_at, updated_at
+  `;
+  return result.rows[0];
 }
 
-export async function getNotes(userId: string) {
-  try {
-    const result = await sql`
-      SELECT id, title, content, created_at, updated_at
-      FROM notes
-      WHERE user_id = ${userId}
-      ORDER BY updated_at DESC
-    `;
-    return result.rows;
-  } catch (error) {
-    console.error("Error fetching notes:", error);
-    throw error;
-  }
+export async function getNotes(userId: string): Promise<Note[]> {
+  const result = await sql<Note>`
+    SELECT id, title, content, created_at, updated_at
+    FROM notes
+    WHERE user_id = ${userId}
+    ORDER BY updated_at DESC
+  `;
+  return result.rows;
 }
 
-export async function getNote(userId: string, noteId: string) {
-  try {
-    const result = await sql`
-      SELECT id, title, content, created_at, updated_at
-      FROM notes
-      WHERE user_id = ${userId} AND id = ${noteId}
-    `;
-    return result.rows[0] || null;
-  } catch (error) {
-    console.error("Error fetching note:", error);
-    throw error;
-  }
+export async function getNote(
+  userId: string,
+  noteId: string
+): Promise<Note | null> {
+  const result = await sql<Note>`
+    SELECT id, title, content, created_at, updated_at
+    FROM notes
+    WHERE user_id = ${userId} AND id = ${noteId}
+  `;
+  return result.rows[0] || null;
 }
 
 export async function updateNote(
@@ -52,26 +49,41 @@ export async function updateNote(
   noteId: string,
   title: string,
   content: string
-) {
-  try {
-    const result = await sql`
-      UPDATE notes
-      SET title = ${title}, content = ${content}, updated_at = NOW()
-      WHERE user_id = ${userId} AND id = ${noteId}
-      RETURNING id, title, content, created_at, updated_at
-    `;
-    return result.rows[0] || null;
-  } catch (error) {
-    console.error("Error updating note:", error);
-    throw error;
-  }
+): Promise<Note | null> {
+  const result = await sql<Note>`
+    UPDATE notes
+    SET title = ${title}, content = ${content}, updated_at = NOW()
+    WHERE user_id = ${userId} AND id = ${noteId}
+    RETURNING id, title, content, created_at, updated_at
+  `;
+  return result.rows[0] || null;
 }
 
-export async function deleteNote(userId: string, noteId: string) {
-  try {
-    await sql`DELETE FROM notes WHERE user_id = ${userId} AND id = ${noteId}`;
-  } catch (error) {
-    console.error("Error deleting note:", error);
-    throw error;
-  }
+export async function deleteNote(
+  userId: string,
+  noteId: string
+): Promise<void> {
+  await sql`DELETE FROM notes WHERE user_id = ${userId} AND id = ${noteId}`;
+}
+
+export async function createShareLink(
+  userId: string,
+  noteId: string
+): Promise<string> {
+  const shareId = uuidv4();
+  await sql`
+    INSERT INTO shared_notes (share_id, user_id, note_id)
+    VALUES (${shareId}, ${userId}, ${noteId})
+  `;
+  return shareId;
+}
+
+export async function getSharedNote(shareId: string): Promise<Note | null> {
+  const result = await sql<Note>`
+    SELECT n.id, n.title, n.content, n.created_at, n.updated_at
+    FROM notes n
+    JOIN shared_notes sn ON n.id = sn.note_id
+    WHERE sn.share_id = ${shareId}
+  `;
+  return result.rows[0] || null;
 }

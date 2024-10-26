@@ -131,13 +131,24 @@ export default function Dashboard() {
     }
   };
 
-  const handleShareNote = (noteId: string) => {
-    // Ici, vous pouvez implémenter la logique de partage
-    // Par exemple, ouvrir une boîte de dialogue pour entrer l'email du destinataire
-    toast("Fonctionnalité de partage à implémenter", {
-      icon: "🔗",
-    });
-    console.log("Partager la note avec ID:", noteId);
+  const handleShareNote = async (noteId: string) => {
+    try {
+      const response = await fetch(`/api/notes/${noteId}/share`, {
+        method: "POST",
+      });
+      if (!response.ok) {
+        throw new Error("Erreur lors de la création du lien de partage");
+      }
+      const { shareId } = await response.json();
+      const link = `${window.location.origin}/shared/${shareId}`;
+
+      await navigator.clipboard.writeText(link);
+
+      toast.success("Lien de partage copié dans le presse-papiers");
+    } catch (error) {
+      console.error("Erreur:", error);
+      toast.error("Impossible de créer le lien de partage");
+    }
   };
 
   if (!isLoaded || !user) {

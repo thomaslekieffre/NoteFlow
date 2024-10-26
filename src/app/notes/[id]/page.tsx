@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import NoteEditor from "@/components/NoteEditor";
-import { FiSave, FiArrowLeft } from "react-icons/fi";
+import { FiSave, FiArrowLeft, FiShare2 } from "react-icons/fi";
 import { motion } from "framer-motion";
 import { Toaster, toast } from "react-hot-toast";
 
@@ -16,6 +16,7 @@ export default function NotePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [shareLink, setShareLink] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchNote = async () => {
@@ -82,6 +83,24 @@ export default function NotePage() {
     }
   };
 
+  const handleShare = async () => {
+    try {
+      const response = await fetch(`/api/notes/${params.id}/share`, {
+        method: "POST",
+      });
+      if (!response.ok) {
+        throw new Error("Erreur lors de la création du lien de partage");
+      }
+      const { shareId } = await response.json();
+      const link = `${window.location.origin}/shared/${shareId}`;
+      setShareLink(link);
+      toast.success("Lien de partage créé avec succès");
+    } catch (error) {
+      console.error("Erreur:", error);
+      toast.error("Impossible de créer le lien de partage");
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -116,19 +135,39 @@ export default function NotePage() {
         <Button onClick={() => router.push("/dashboard")} variant="outline">
           <FiArrowLeft className="mr-2" /> Retour
         </Button>
-        <Button onClick={handleSave} disabled={isSaving}>
-          {isSaving ? (
-            <>
-              <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white mr-2"></div>
-              Sauvegarde...
-            </>
-          ) : (
-            <>
-              <FiSave className="mr-2" /> Sauvegarder
-            </>
-          )}
-        </Button>
+        <div className="flex space-x-2">
+          <Button onClick={handleShare} variant="outline">
+            <FiShare2 className="mr-2" /> Partager
+          </Button>
+          <Button onClick={handleSave} disabled={isSaving}>
+            {isSaving ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white mr-2"></div>
+                Sauvegarde...
+              </>
+            ) : (
+              <>
+                <FiSave className="mr-2" /> Sauvegarder
+              </>
+            )}
+          </Button>
+        </div>
       </div>
+      {shareLink && (
+        <div className="mb-4 p-2 bg-green-100 border border-green-300 rounded">
+          <p>
+            Lien de partage :{" "}
+            <a
+              href={shareLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 hover:underline"
+            >
+              {shareLink}
+            </a>
+          </p>
+        </div>
+      )}
       <Input
         type="text"
         value={note.title}
