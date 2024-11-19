@@ -1,0 +1,13 @@
+name: Delete Expired Collaborations
+
+on:
+  schedule:
+    - cron: "0 0 * * *"
+
+jobs:
+  deleteExpired:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call deleteExpiredCollaborations function
+        run: |
+          curl -X POST https://note-flow-one.vercel.app/api/deleteExpiredCollaborations

@@ -1,0 +1,52 @@
+{
+  "defaultBranch": "main",
+  "commitMessageTemplate": "feat: {type}: {description}",
+  "types": [
+    "feature",
+    "fix",
+    "docs",
+    "style",
+    "refactor",
+    "test",
+    "chore"
+  ],
+  "conventionalCommits": true,
+  "branchNameTemplate": "{type}/{description}",
+  "packageManager": "npm",
+  "technicalStack": {
+    "framework": "next.js",
+    "styling": ["tailwindcss", "shadcn-ui"],
+    "database": "vercel-postgres",
+    "auth": "clerk",
+    "editor": "tiptap",
+    "realtime": ["y.js", "socket.io"],
+    "testing": "none"
+  },
+  "folders": {
+    "components": "src/components",
+    "pages": "src/app",
+    "lib": "src/lib",
+    "types": "src/types",
+    "public": "public"
+  },
+  "componentTemplate": {
+    "extension": ".tsx",
+    "style": "functional-component",
+    "includeTypes": true
+  },
+  "dependencies": {
+    "required": [
+      "@clerk/nextjs",
+      "@vercel/postgres",
+      "@tiptap/react",
+      "next",
+      "react",
+      "tailwindcss"
+    ],
+    "development": [
+      "typescript",
+      "eslint",
+      "prettier"
+    ]
+  }
+}

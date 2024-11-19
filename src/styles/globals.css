@@ -1,0 +1,197 @@
+/* Base styles pour l'éditeur */
+.ProseMirror {
+  padding: 1rem;
+  min-height: 200px;
+
+  &:focus {
+    outline: none;
+  }
+
+  .text-xs {
+    font-size: 0.75rem !important;
+    line-height: 1rem !important;
+  }
+
+  .text-sm {
+    font-size: 0.875rem !important;
+    line-height: 1.25rem !important;
+  }
+
+  .text-base {
+    font-size: 1rem !important;
+    line-height: 1.5rem !important;
+  }
+
+  .text-lg {
+    font-size: 1.125rem !important;
+    line-height: 1.75rem !important;
+  }
+
+  .text-xl {
+    font-size: 1.25rem !important;
+    line-height: 1.75rem !important;
+  }
+
+  [style*="font-size: 12px"] {
+    line-height: 1rem;
+  }
+  [style*="font-size: 14px"] {
+    line-height: 1.25rem;
+  }
+  [style*="font-size: 16px"] {
+    line-height: 1.5rem;
+  }
+  [style*="font-size: 18px"] {
+    line-height: 1.75rem;
+  }
+  [style*="font-size: 20px"] {
+    line-height: 2rem;
+  }
+}
+
+/* Override Tailwind Typography styles */
+.prose.prose-sm,
+.prose.prose-lg,
+.prose.prose-2xl {
+  h1,
+  h2,
+  h3 {
+    color: hsl(var(--foreground)) !important;
+  }
+
+  p,
+  strong,
+  em,
+  ul,
+  ol,
+  li,
+  code,
+  s,
+  a,
+  span {
+    color: hsl(var(--foreground)) !important;
+  }
+
+  h1 {
+    font-size: 2em !important;
+    font-weight: 700 !important;
+    margin: 1em 0 0.5em !important;
+  }
+
+  h2 {
+    font-size: 1.5em !important;
+    font-weight: 600 !important;
+    margin: 0.83em 0 !important;
+  }
+
+  h3 {
+    font-size: 1.17em !important;
+    font-weight: 600 !important;
+    margin: 0.67em 0 !important;
+  }
+}
+
+/* Dark mode styles */
+.dark {
+  .prose.prose-sm,
+  .prose.prose-lg,
+  .prose.prose-2xl {
+    * {
+      color: rgb(229, 231, 235) !important;
+    }
+  }
+}
+
+/* Conteneur de l'éditeur en mode sombre */
+.dark .note-editor {
+  background: rgb(30, 30, 30);
+  border-color: rgb(75, 75, 75);
+}
+
+/* Barre d'outils en mode sombre */
+.dark .editor-toolbar {
+  background: rgb(30, 30, 30);
+  border-color: rgb(75, 75, 75);
+}
+
+.prose {
+  &.text-xs {
+    p,
+    strong,
+    em,
+    ul,
+    ol,
+    li,
+    code,
+    s,
+    a,
+    span {
+      font-size: 0.75rem !important;
+      line-height: 1rem !important;
+    }
+  }
+
+  &.text-sm {
+    p,
+    strong,
+    em,
+    ul,
+    ol,
+    li,
+    code,
+    s,
+    a,
+    span {
+      font-size: 0.875rem !important;
+      line-height: 1.25rem !important;
+    }
+  }
+
+  &.text-base {
+    p,
+    strong,
+    em,
+    ul,
+    ol,
+    li,
+    code,
+    s,
+    a,
+    span {
+      font-size: 1rem !important;
+      line-height: 1.5rem !important;
+    }
+  }
+
+  &.text-lg {
+    p,
+    strong,
+    em,
+    ul,
+    ol,
+    li,
+    code,
+    s,
+    a,
+    span {
+      font-size: 1.125rem !important;
+      line-height: 1.75rem !important;
+    }
+  }
+
+  &.text-xl {
+    p,
+    strong,
+    em,
+    ul,
+    ol,
+    li,
+    code,
+    s,
+    a,
+    span {
+      font-size: 1.25rem !important;
+      line-height: 1.75rem !important;
+    }
+  }
+}
