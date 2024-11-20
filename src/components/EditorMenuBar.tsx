@@ -37,7 +37,10 @@ export default function MenuBar({ editor, onImageUpload }: MenuBarProps) {
   if (!editor) return null;
 
   const handleImageClick = () => {
-    imageInputRef.current?.click();
+    if (imageInputRef.current) {
+      imageInputRef.current.value = "";
+      imageInputRef.current.click();
+    }
   };
 
   return (
@@ -132,6 +135,7 @@ export default function MenuBar({ editor, onImageUpload }: MenuBarProps) {
           const file = e.target.files?.[0];
           if (file && onImageUpload) {
             onImageUpload(file);
+            e.target.value = "";
           }
         }}
       />

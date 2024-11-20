@@ -23,8 +23,11 @@ import Document from "@tiptap/extension-document";
 import { FontSize } from "@/lib/extensions/fontSize";
 import TextStyle from "@tiptap/extension-text-style";
 import Image from "@tiptap/extension-image";
+import { Editor } from "@tiptap/react";
+import { cn } from "@/lib/utils";
 
 interface NoteEditorProps {
+  title: string;
   content: string;
   onChange: (content: string) => void;
   noteId: string;
@@ -32,7 +35,7 @@ interface NoteEditorProps {
     id: string;
     fullName: string;
   };
-  title: string;
+  onEditorReady?: (editor: Editor) => void;
 }
 
 const getWordCount = (text: string) => {
@@ -47,11 +50,12 @@ const getCharCount = (text: string) => {
 };
 
 const NoteEditor: React.FC<NoteEditorProps> = ({
+  title,
   content,
   onChange,
   noteId,
   user,
-  title,
+  onEditorReady,
 }) => {
   const [socket, setSocket] = useState<Socket | null>(null);
   const skipNextUpdate = useRef(false);
@@ -159,6 +163,9 @@ const NoteEditor: React.FC<NoteEditorProps> = ({
         }
         return false;
       },
+    },
+    onBeforeCreate({ editor }) {
+      onEditorReady?.(editor);
     },
   });
 

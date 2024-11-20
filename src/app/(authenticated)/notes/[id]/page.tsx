@@ -13,6 +13,8 @@ import { useNote } from "@/lib/hooks/useNote";
 import { TagSelector } from "@/components/ui/tag-selector";
 import { NoteData, Tag } from "@/types";
 import { formatLastModified } from "@/lib/utils/formatDate";
+import { Editor } from "@tiptap/react";
+import { cn } from "@/lib/utils";
 
 export default function NotePage() {
   const params = useParams<{ id: string }>();
@@ -37,6 +39,8 @@ export default function NotePage() {
     isLoading: isNoteLoading,
     refresh,
   } = useNote(noteId);
+  const [isDragging, setIsDragging] = useState(false);
+  const [editor, setEditor] = useState<Editor | null>(null);
 
   useEffect(() => {
     const initializeNote = async () => {
@@ -214,6 +218,61 @@ export default function NotePage() {
     fetchTags();
   }, [noteId]);
 
+  const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+
+    const file = e.dataTransfer.files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Format de fichier non supporté");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("image", file);
+    formData.append("noteId", noteId as string);
+
+    try {
+      const response = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error("Erreur lors de l'upload");
+      }
+
+      const { url } = await response.json();
+
+      if (editor) {
+        editor.chain().focus().insertContent(`![${file.name}](${url})`).run();
+        toast.success("Image téléchargée avec succès");
+      }
+    } catch (error) {
+      console.error("Erreur upload:", error);
+      toast.error("Erreur lors du téléchargement de l'image");
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.currentTarget.contains(e.relatedTarget as Node)) return;
+    setIsDragging(false);
+  };
+
+  const handleEditorReady = (editorInstance: Editor) => {
+    setEditor(editorInstance);
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -299,16 +358,32 @@ export default function NotePage() {
           </p>
         </div>
       </div>
-      <NoteEditor
-        title={note?.title || ""}
-        content={note?.content || ""}
-        onChange={handleContentChange}
-        noteId={noteId || ""}
-        user={{
-          id: user?.id || "",
-          fullName: user?.fullName || "",
-        }}
-      />
+      <div
+        onDrop={handleDrop}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        className={cn(
+          "relative w-full min-h-[500px] rounded-md border border-input bg-background p-4",
+          isDragging && "border-primary border-2"
+        )}
+      >
+        <NoteEditor
+          title={note?.title || ""}
+          content={note?.content || ""}
+          onChange={handleContentChange}
+          noteId={noteId || ""}
+          user={{
+            id: user?.id || "",
+            fullName: user?.fullName || "",
+          }}
+          onEditorReady={handleEditorReady}
+        />
+        {isDragging && (
+          <div className="absolute inset-0 flex items-center justify-center bg-background/80 rounded-md">
+            <p className="text-lg font-medium">Déposez l'image ici</p>
+          </div>
+        )}
+      </div>
     </motion.div>
   );
 }
