@@ -73,24 +73,30 @@ const NoteEditor: React.FC<NoteEditorProps> = ({
         body: formData,
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Erreur upload");
+        throw new Error(data.error || "Erreur lors de l'upload");
       }
 
-      const { url } = await response.json();
-
       if (editor) {
-        editor.commands.setImage({
-          src: url,
-          alt: file.name,
-          title: file.name,
-        });
+        editor
+          .chain()
+          .focus()
+          .setImage({
+            src: data.url,
+            alt: file.name,
+            title: file.name,
+          })
+          .run();
+
+        const newContent = editor.getHTML();
+        onChange(newContent);
 
         socket?.emit("document-update", {
           documentId: noteId,
           userId: user.id,
-          content: editor.getHTML(),
+          content: newContent,
         });
       }
 
