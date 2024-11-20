@@ -403,4 +403,18 @@ export async function deleteTag(tagId: number) {
   return true;
 }
 
+export async function cleanupOrphanedImages() {
+  try {
+    await sql`
+      DELETE FROM note_images
+      WHERE note_id NOT IN (
+        SELECT id FROM notes
+      )
+    `;
+  } catch (error) {
+    console.error("Erreur nettoyage images:", error);
+    throw error;
+  }
+}
+
 export { sql };

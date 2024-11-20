@@ -21,15 +21,24 @@ import {
   SelectItem,
 } from "./ui/select";
 import { FontSizeSelector } from "./ui/font-size-selector";
+import { FiImage } from "react-icons/fi";
+import { useRef } from "react";
 
 type MenuBarProps = {
   editor: Editor | null;
+  onImageUpload: (file: File) => Promise<void>;
 };
 
 type Level = 1 | 2 | 3;
 
-export default function MenuBar({ editor }: MenuBarProps) {
+export default function MenuBar({ editor, onImageUpload }: MenuBarProps) {
+  const imageInputRef = useRef<HTMLInputElement>(null);
+
   if (!editor) return null;
+
+  const handleImageClick = () => {
+    imageInputRef.current?.click();
+  };
 
   return (
     <div className="border-b p-2 flex flex-wrap items-center gap-2">
@@ -113,6 +122,29 @@ export default function MenuBar({ editor }: MenuBarProps) {
           <ListOrdered className="h-4 w-4" />
         </Button>
       </div>
+
+      <input
+        ref={imageInputRef}
+        type="file"
+        className="hidden"
+        accept="image/*"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file && onImageUpload) {
+            onImageUpload(file);
+          }
+        }}
+      />
+
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={handleImageClick}
+        className="px-2"
+        title="Ajouter une image"
+      >
+        <FiImage className="h-4 w-4" />
+      </Button>
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import { io } from "socket.io-client";
+import { io, Socket } from "socket.io-client";
 import MenuBar from "./EditorMenuBar";
 import { Button } from "@/components/ui/button";
 import { FiDownload } from "react-icons/fi";
@@ -22,6 +22,7 @@ import Code from "@tiptap/extension-code";
 import Document from "@tiptap/extension-document";
 import { FontSize } from "@/lib/extensions/fontSize";
 import TextStyle from "@tiptap/extension-text-style";
+import Image from "@tiptap/extension-image";
 
 interface NoteEditorProps {
   content: string;
@@ -52,32 +53,81 @@ const NoteEditor: React.FC<NoteEditorProps> = ({
   user,
   title,
 }) => {
-  const [socket, setSocket] = useState<any>(null);
+  const [socket, setSocket] = useState<Socket | null>(null);
   const skipNextUpdate = useRef(false);
+  const [isUploading, setIsUploading] = useState(false);
 
-  const extensions = [
-    Document,
-    StarterKit.configure({
-      document: false,
-    }),
-    Heading.configure({
-      levels: [1, 2, 3],
-    }),
-    Placeholder.configure({
-      placeholder: "Commencez à écrire...",
-    }),
-    ListExit,
-    Bold.configure(),
-    Italic.configure(),
-    Strike.configure(),
-    Code.configure(),
-    TextStyle,
-    FontSize,
-  ];
+  const handleImageUpload = async (file: File) => {
+    setIsUploading(true);
+    const formData = new FormData();
+    formData.append("image", file);
+    formData.append("noteId", noteId);
+
+    try {
+      const response = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Erreur upload");
+      }
+
+      const { url } = await response.json();
+
+      if (editor) {
+        editor.commands.setImage({
+          src: url,
+          alt: file.name,
+          title: file.name,
+        });
+
+        socket?.emit("document-update", {
+          documentId: noteId,
+          userId: user.id,
+          content: editor.getHTML(),
+        });
+      }
+
+      toast.success("Image ajoutée avec succès");
+    } catch (error) {
+      console.error("Erreur upload:", error);
+      toast.error("Erreur lors de l'upload de l'image");
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   const editor = useEditor({
-    extensions: extensions,
-    content: content,
+    extensions: [
+      StarterKit.configure({
+        document: false,
+      }),
+      Document,
+      Heading.configure({
+        levels: [1, 2, 3],
+      }),
+      Placeholder.configure({
+        placeholder: "Commencez à écrire...",
+      }),
+      ListExit,
+      Bold,
+      Italic,
+      Strike,
+      Code,
+      Image.configure({
+        HTMLAttributes: {
+          class: "rounded-lg max-w-full h-auto",
+        },
+      }),
+      TextStyle,
+      FontSize,
+      BulletList,
+      OrderedList,
+      ListItem,
+    ],
+    content,
     onUpdate: ({ editor }) => {
       if (skipNextUpdate.current) {
         skipNextUpdate.current = false;
@@ -86,7 +136,7 @@ const NoteEditor: React.FC<NoteEditorProps> = ({
       const newContent = editor.getHTML();
       onChange(newContent);
       socket?.emit("document-update", {
-        noteId,
+        documentId: noteId,
         userId: user.id,
         content: newContent,
       });
@@ -95,6 +145,19 @@ const NoteEditor: React.FC<NoteEditorProps> = ({
       attributes: {
         class:
           "prose prose-sm sm:prose lg:prose-lg xl:prose-2xl mx-auto focus:outline-none dark:prose-invert",
+      },
+      handleDrop: (view, event, slice, moved) => {
+        if (!moved && event.dataTransfer?.files.length) {
+          const images = Array.from(event.dataTransfer.files).filter((file) =>
+            file.type.startsWith("image/")
+          );
+          if (images.length > 0) {
+            event.preventDefault();
+            images.forEach((image) => handleImageUpload(image));
+            return true;
+          }
+        }
+        return false;
       },
     },
   });
@@ -108,9 +171,7 @@ const NoteEditor: React.FC<NoteEditorProps> = ({
       };
 
       editor.on("update", () => {
-        const selection = editor.state.selection;
         const isInCodeBlock = editor.isActive("codeBlock");
-
         if (!isInCodeBlock) {
           requestAnimationFrame(updateSyntaxHighlighting);
         }
@@ -169,7 +230,7 @@ const NoteEditor: React.FC<NoteEditorProps> = ({
   return (
     <div className="note-editor">
       <div className="flex justify-between items-center mb-4">
-        <MenuBar editor={editor} />
+        <MenuBar editor={editor} onImageUpload={handleImageUpload} />
         <Button
           variant="outline"
           size="sm"

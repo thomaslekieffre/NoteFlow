@@ -2,11 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import puppeteer from "puppeteer";
 import { getExportStyles } from "@/styles/_templates/getExportStyles";
 import hljs from "highlight.js";
+import { sql } from "@vercel/postgres";
 
 export async function POST(request: NextRequest) {
   try {
     const { title, content } = await request.json();
-    const browser = await puppeteer.launch({ headless: true });
+    const browser = await puppeteer.launch();
     const page = await browser.newPage();
 
     await page.addStyleTag({
@@ -45,7 +46,39 @@ export async function POST(request: NextRequest) {
       </html>
     `;
 
-    await page.setContent(html, { waitUntil: "networkidle0" });
+    await page.setRequestInterception(true);
+    page.on("request", async (request: any) => {
+      if (
+        request.resourceType() === "image" &&
+        request.url().includes("/api/images/")
+      ) {
+        try {
+          const imageId = request.url().split("/").pop();
+          const result = await sql`
+            SELECT data, mime_type
+            FROM note_images
+            WHERE id = ${parseInt(imageId)}
+          `;
+
+          if (result.rows.length > 0) {
+            request.respond({
+              status: 200,
+              contentType: result.rows[0].mime_type,
+              body: result.rows[0].data,
+            });
+            return;
+          }
+        } catch (error) {
+          console.error("Erreur chargement image:", error);
+        }
+      }
+      request.continue();
+    });
+
+    await page.setContent(html, {
+      waitUntil: "networkidle0",
+      timeout: 30000,
+    });
 
     await page.addStyleTag({
       content: `
