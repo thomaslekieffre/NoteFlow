@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Editor } from "@tiptap/react";
 
 export function FontSizeSelector({ editor }: { editor: Editor }) {
-  const [fontSize, setFontSize] = useState("14");
+  const [fontSize, setFontSize] = useState("15");
 
   useEffect(() => {
     const handleSelectionUpdate = () => {

@@ -94,7 +94,7 @@ const NoteEditor: React.FC<NoteEditorProps> = ({
         onChange(newContent);
 
         socket?.emit("document-update", {
-          documentId: noteId,
+          noteId: noteId,
           userId: user.id,
           content: newContent,
         });
@@ -146,7 +146,7 @@ const NoteEditor: React.FC<NoteEditorProps> = ({
       const newContent = editor.getHTML();
       onChange(newContent);
       socket?.emit("document-update", {
-        documentId: noteId,
+        noteId: noteId,
         userId: user.id,
         content: newContent,
       });
